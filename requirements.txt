@@ -1,18 +1,32 @@
 # Solar Filament Segmentation Challenge 2026 -- YOLO11-seg baseline
 #
-# The Kaggle GPU image already ships PyTorch + CUDA, so the notebook only installs
-# the two packages it actually needs at the top of Cell 1:
+# Reproduce with:   pip install -r requirements.txt
+#
+# The reported runs executed on a Kaggle notebook (Python 3.12.13, torch 2.10.0+cu128,
+# single Tesla T4). Kaggle notebooks have no persistence, so the notebook installs only
+# the two packages it does not inherit from the image:
+#
 #     !pip install -q ultralytics pycocotools
 #
-# This file pins the same set for anyone reproducing the pipeline outside Kaggle.
-# Versions below are what the reported runs used (see Appendix A of the report).
+# Everything listed below is imported by p4_pipeline.ipynb. Cell 10 of that notebook
+# prints `pip freeze` for these packages, so any run's environment can be diffed against
+# these pins.
+#
+# TODO(pin): the four image-provided packages below still carry lower bounds; they are
+#            being tightened to the exact versions reported by Cell 10.
 
-ultralytics>=8.4.0          # =8.4.163 in the reported runs; trains and predicts yolo11n-seg
-pycocotools>=2.0.7          # RLE encode/decode + mask.iou (the PQ matcher runs in C)
+# --- the two packages the notebook installs itself -------------------------------
+ultralytics==8.4.163        # training + inference for yolo11n-seg (reported run)
+pycocotools>=2.0.7          # RLE encode/decode and mask.iou -- the PQ matcher runs in C
 
-opencv-python>=4.8.0        # cv2.resize for retina_masks output that is not at orig_shape
+# --- torch: deliberately not pinned to +cu128 ------------------------------------
+# The reported run used the Kaggle image's CUDA build, 2.10.0+cu128, which is not on
+# PyPI. Install the wheel matching your platform instead, e.g.
+#     pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
+torch==2.10.0
+
+# --- shipped by the Kaggle image --------------------------------------------------
+opencv-python>=4.8.0        # cv2.resize, for retina_masks output not at orig_shape
 numpy>=1.26
 pandas>=2.0                 # writes submission.csv
-
-# only used by Cell 9 (the Dice / IoU distribution figure)
-matplotlib>=3.8
+matplotlib>=3.8             # Cell 9 only: the Dice / IoU distribution figure

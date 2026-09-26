@@ -9,6 +9,19 @@ The point of this repo is not a leaderboard run for its own sake — it is a con
 **which knob actually moves the metrics**, plus an honest account of one inference that turned
 out to be wrong (see *Findings*, item 5).
 
+## Competition submission package
+
+| Item | Where |
+|---|---|
+| 4-page technical report (single PDF) | built from `report/competition/` in the organisers' Overleaf template |
+| Public code repository | this repository |
+| `requirements.txt` listing every package with its version | `requirements.txt` |
+| Jupyter notebook showing the entire pipeline | `p4_pipeline.ipynb` (one `Run All` on Kaggle) |
+| Test predictions | `submission.csv`, written by the notebook's prediction cell |
+
+The report uses the organisers' ACM `acmart` (sigconf) template. `report/competition/main.tex` is
+the submitted source; it expects the template's own `preamble.tex`, which is not redistributed here.
+
 ## Results
 
 All local numbers are on a **date-grouped validation split** (whole months held out, `VAL_EVERY=4`):
@@ -109,16 +122,23 @@ of the predictions by raising the confidence threshold *improved* the public sco
 ```
 .
 ├── README.md
-├── requirements.txt
+├── requirements.txt            # every package the notebook imports, with versions
 ├── LICENSE                     # MIT; competition data explicitly excluded
 ├── p4_pipeline.ipynb           # the full pipeline, top to bottom, Kaggle-ready
+│                               #   (Cell 10 prints the environment for reproducibility)
 ├── figures/
 │   ├── results.png             # training curves
 │   ├── fig_qualitative.png     # qualitative successes and the two failure modes
-│   └── fig_distributions.png   # Dice / IoU distributions (rubric item)
+│   ├── fig_distributions.png   # Dice / IoU distributions (rubric item)
+│   ├── fig_pipeline.pdf        # pipeline diagram, vector
+│   └── fig_qualitative.pdf     # qualitative figure, vector
 └── report/
     ├── report.md               # the 4-page write-up, Markdown
-    └── report.tex              # same content in NeurIPS 2026 preprint format
+    ├── report.tex              # same content in NeurIPS 2026 preprint format
+    └── competition/            # the report as submitted (ACM acmart sigconf template)
+        ├── main.tex
+        ├── main.bib
+        └── fig_*.pdf
 ```
 
 ## Reproducing
