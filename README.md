@@ -110,12 +110,15 @@ of the predictions by raising the confidence threshold *improved* the public sco
 .
 ├── README.md
 ├── requirements.txt
-├── p4_pipeline.ipynb        # the full pipeline, top to bottom, Kaggle-ready
+├── LICENSE                     # MIT; competition data explicitly excluded
+├── p4_pipeline.ipynb           # the full pipeline, top to bottom, Kaggle-ready
 ├── figures/
-│   ├── results.png          # training curves
-│   ├── fig_qualitative.png  # qualitative successes and the two failure modes
-│   └── fig_distributions.png# Dice / IoU distributions (rubric item)
-└── report.pdf               # the 4-page write-up
+│   ├── results.png             # training curves
+│   ├── fig_qualitative.png     # qualitative successes and the two failure modes
+│   └── fig_distributions.png   # Dice / IoU distributions (rubric item)
+└── report/
+    ├── report.md               # the 4-page write-up, Markdown
+    └── report.tex              # same content in NeurIPS 2026 preprint format
 ```
 
 ## Reproducing
