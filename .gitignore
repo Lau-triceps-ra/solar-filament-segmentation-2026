@@ -21,3 +21,6 @@ submission*.csv
 
 # Local scratch
 scratch/
+
+# local preview page (generated from README.md, not part of the deliverable)
+/index.html
