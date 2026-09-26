@@ -94,7 +94,7 @@ mediocre-to-good* — it never collapses and never nails a frame.
 **Matched-pair IoU** (all > 0.5) — mean 0.6307, median 0.6217, mode in 0.55–0.60. 79 % of pairs
 fall in 0.50–0.70; only 26 pairs (2.5 %) exceed 0.80 and **none exceed 0.90**. Matched masks are
 barely over the line. Consequence: raising the PQ IoU threshold from 0.5 to 0.7 would discard
-roughly 60 % of the current true positives. Mask tightness — not detection — is the next lever,
+roughly 79 % of the current true positives. Mask tightness — not detection — is the next lever,
 and it is invisible to Dice, which only compares mask unions.
 
 **Prediction ↔ GT relations**
