@@ -6,6 +6,11 @@
 \documentclass[sigconf]{acmart}
 \input{preamble}
 
+% Accessibility descriptions are used inside the floats below. acmart defines
+% \Description, but only from v1.83 on; provide a no-op fallback so an older class
+% file degrades instead of failing the build.
+\providecommand{\Description}[1]{}
+
 % Guide styling: \guideStyletrue = show gray italic hints; \guideStylefalse = omit them
 \guideStylefalse
 
