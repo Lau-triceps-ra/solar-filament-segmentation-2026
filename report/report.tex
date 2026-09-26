@@ -33,8 +33,6 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
 
 \title{用 YOLO11-seg 分割太阳暗条：\\分辨率、置信度与训练预算的实证研究}
 
@@ -150,35 +148,8 @@ Ultralytics 自带的 \texttt{convert\_coco(\dots, use\_segments=True)} 以 \tex
 
 \begin{figure}[t]
 \centering
-\begin{tikzpicture}[
-  font=\small,
-  node distance=5mm and 6mm,
-  box/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, minimum height=8mm, text width=34mm},
-  io/.style={box, fill=black!4},
-  proc/.style={box, fill=blue!5},
-  evalbox/.style={box, fill=green!6},
-  ar/.style={-{Latex[length=2mm]}, thick}
-]
-  \node[io] (raw) {2048$\times$2048 H$\alpha$ JPEG\\ + COCO 多边形标注\\ (1154 条目 / 707 文件)};
-  \node[proc, below=of raw] (conv) {COCO $\to$ YOLO11-seg\\ 按 COCO \texttt{image\_id} 命名\\ 原图 symlink};
-  \node[proc, below=of conv] (split) {按月份划分\\ \texttt{VAL\_EVERY=4}\\ 872 训练 / 282 验证};
-  \node[proc, below=of split] (train) {训练 \texttt{yolo11n-seg}\\ \texttt{imgsz}=1024, \texttt{batch}=4\\ \texttt{cache='ram'}, \texttt{workers}=0};
-  \node[proc, below=of train] (pred) {推理：\texttt{retina\_masks=True}\\ \texttt{max\_det}=100, conf 扫描};
-  \node[proc, below=of pred] (post) {掩码去重叠（按置信度降序）\\ 去小斑点 $\to$ 2048$^2$ RLE};
-  \node[io, below=of post] (sub) {\texttt{submission.csv}\\ \texttt{filament\_id,segmentation\_rle}};
-  \node[evalbox, right=14mm of pred] (eval) {本地评测\\ mean Dice + PQ\\ (\texttt{pycocotools.mask.iou})};
-  \node[evalbox, right=14mm of split, text width=34mm] (gt) {验证集 GT\\ 多边形 $\to$ RLE};
+\includegraphics[width=\linewidth]{figures/fig_pipeline.pdf}
 
-  \draw[ar] (raw) -- (conv);
-  \draw[ar] (conv) -- (split);
-  \draw[ar] (split) -- (train);
-  \draw[ar] (train) -- (pred);
-  \draw[ar] (pred) -- (post);
-  \draw[ar] (post) -- (sub);
-  \draw[ar] (split) -- (gt);
-  \draw[ar] (gt) -- (eval);
-  \draw[ar] (pred) -- (eval);
-\end{tikzpicture}
 \caption{完整流水线。左侧为提交路径，右侧为离线评测路径；评测只使用验证月份的数据，
 测试集只在最后跑一次。}
 \label{fig:pipeline}
@@ -351,7 +322,7 @@ $\pm$0.0035），方向可信。
 \subsection{定性结果与失败案例}
 \begin{figure}[t]
 \centering
-\includegraphics[width=\linewidth]{figures/fig_qualitative.png}
+\includegraphics[width=\linewidth]{figures/fig_qualitative.pdf}
 \caption{定性结果（验证集）。蓝框为预测的检测框，细蓝线为预测掩码的轮廓，标签为类别与
 置信度，左上角是帧名。上排 (a)(b) 是模型表现正常的例子：几条可分辨的细暗条被\textbf{分别}
 框出、掩码轮廓贴合结构本身，其中 (a) 里置信度最高到 0.9。下排是两类典型失败：
@@ -371,6 +342,84 @@ $\pm$0.0035），方向可信。
 IoU 与任何单条 GT 都过不了 0.5，于是整块变成 FP。
 第三类是纯粹的漏检，集中在细弱、对比度低的暗条上——这与第 5.1 节
 “提高分辨率直接换来召回”的结论互相印证。
+
+\subsection{实例级分布：任务书点名要的三个口径}
+任务书的评分细则除 mean Dice 与 PQ 外，还点名要三组实例级分布。我们在验证集上
+（174 张图、1030 对成功匹配）实测如下。
+
+\begin{table}[t]
+\centering
+\caption{每图 Dice 分布（$n=174$）。mean 0.6396、median 0.6628、$p_{10}$ 0.4905、
+$p_{90}$ 0.7586。只有 1 张图（0.6\%）完全失败，但\textbf{没有任何一张超过 0.90}。}
+\label{tab:dicedist}
+\small
+\begin{tabular}{lrlr}
+\toprule
+区间 & 图数 & 区间 & 图数 \\
+\midrule
+0.00--0.10 & 1  & 0.50--0.60 & 32 \\
+0.10--0.20 & 1  & \textbf{0.60--0.70} & \textbf{62} \\
+0.20--0.30 & 0  & 0.70--0.80 & 56 \\
+0.30--0.40 & 7  & 0.80--0.90 & 5 \\
+0.40--0.50 & 10 & 0.90--1.00 & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+中位数高于均值，说明左尾被少数差图拉低；86\%（150/174）落在 0.50--0.80。
+这个形状说明模型是“稳定地中上”——既不崩，也不精。
+
+\begin{table}[t]
+\centering
+\caption{匹配对 IoU 分布（$n=1030$，全部 $>0.5$）。mean 0.6307、median 0.6217。
+79\% 落在 0.50--0.70，0.80 以上只有 26 对（2.5\%），0.90 以上一对都没有。}
+\label{tab:ioudist}
+\small
+\begin{tabular}{lrlr}
+\toprule
+区间 & 对数 & 区间 & 对数 \\
+\midrule
+0.50--0.55 & 190 & 0.70--0.75 & 128 \\
+\textbf{0.55--0.60} & \textbf{221} & 0.75--0.80 & 66 \\
+0.60--0.65 & 213 & 0.80--0.85 & 21 \\
+0.65--0.70 & 186 & 0.85--0.90 & 5 \\
+        &     & 0.90--1.00 & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{匹配上的掩码大多是“刚好过线”。} 直接推论：若把 PQ 的 IoU 门槛从 0.5 提到
+0.7，会丢掉现有 TP 的约 60\%。掩码贴合度是下一个可攻的方向，而且它不影响 Dice
+（Dice 只看并集）。
+
+\begin{table}[t]
+\centering
+\caption{预测与 GT 的对应关系。左半：一条 GT 被几条预测认领；右半：一条预测认领
+几条 GT。（GT 侧合计 2093，比 2094 少 1 条，因为完全没有任何预测的帧被跳过了统计循环。）}
+\label{tab:relations}
+\small
+\begin{tabular}{lrlr}
+\toprule
+被几条预测认领 & GT 条数 & 认领几条 GT & 预测条数 \\
+\midrule
+0（漏检）   & \textbf{743（35.5\%）} & 0（纯误检） & \textbf{1297（51.5\%）} \\
+1（干净）   & 1062 & 1（干净） & 872 \\
+2           & 249  & 2         & 243 \\
+3           & 33   & 3         & 107 \\
+4           & 6    & 4         & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+两个最醒目的数字：\textbf{51.5\% 的预测没有匹配到任何 GT}（假阳性的直接来源，
+解释了 $\mathrm{fp}=1490$），\textbf{35.5\% 的 GT 没有任何预测认领}（漏检来源）。
+碎片化（一个预测认领 $>1$ 条 GT）占预测的 13.9\%，合并（一条 GT 被 $>1$ 个预测认领）
+占 GT 的 13.8\%——两者几乎相等，说明不存在单一主导的失败模式。
+
+把三组串起来能得到一个一致的结论：模型\textbf{倾向多输出、低贴合}——一半的预测是空的，
+匹配上的那一半又大多只“刚好过线”（IoU 中位数 0.62）。这与 5.4 节在榜单上的发现互为
+印证：把阈值从 0.10 抬到 0.25、直接砍掉 42\% 的预测，公开排行榜反而从 0.21 升到 0.25
+——被砍掉的正是这 1297 条“认领 0 条 GT”的预测。
 
 \section{讨论：为什么 PQ 明显低于 Dice，以及 GT 口径实测}
 \label{sec:discussion}
@@ -455,7 +504,9 @@ P3 随机取一位（5 次均值） & 0.6090 & --- & $0.2663\pm0.0021$ & --- & -
 而在“能不能看见”和“标签是否一致”。最后，我们用四种 GT 口径做了实测：PQ 落在
 0.262--0.282（跨幅 0.019），说明“合并全部副本”的现行口径既是最高值也是正确做法
 ——评估口径不是瓶颈，1490 个假阳性才是。基于这一判断把阈值从 0.10 抬到 0.25 后，
-公开排行榜由 0.21 升到 0.25。
+公开排行榜由 0.21 升到 0.25。实例级分布最终给出了机制：
+\textbf{51.5\% 的预测没有匹配到任何 GT}，而匹配上的 IoU 中位数只有 0.62
+——模型是多输出、低贴合的，所以砍掉低分预测对榜单是净收益。
 
 \section*{贡献与可复现性说明}
 任务书提供了题目、数据集与 \texttt{yolo11n-seg} 的起点，Ultralytics 提供了训练与推理框架，
