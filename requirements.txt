@@ -1,0 +1,18 @@
+# Solar Filament Segmentation Challenge 2026 -- YOLO11-seg baseline
+#
+# The Kaggle GPU image already ships PyTorch + CUDA, so the notebook only installs
+# the two packages it actually needs at the top of Cell 1:
+#     !pip install -q ultralytics pycocotools
+#
+# This file pins the same set for anyone reproducing the pipeline outside Kaggle.
+# Versions below are what the reported runs used (see Appendix A of the report).
+
+ultralytics>=8.4.0          # =8.4.163 in the reported runs; trains and predicts yolo11n-seg
+pycocotools>=2.0.7          # RLE encode/decode + mask.iou (the PQ matcher runs in C)
+
+opencv-python>=4.8.0        # cv2.resize for retina_masks output that is not at orig_shape
+numpy>=1.26
+pandas>=2.0                 # writes submission.csv
+
+# only used by Cell 9 (the Dice / IoU distribution figure)
+matplotlib>=3.8
