@@ -124,6 +124,7 @@ of the predictions by raising the confidence threshold *improved* the public sco
 ├── README.md
 ├── requirements.txt            # every package the notebook imports, with versions
 ├── LICENSE                     # MIT; competition data explicitly excluded
+├── .gitignore
 ├── p4_pipeline.ipynb           # the full pipeline, top to bottom, Kaggle-ready
 │                               #   (Cell 10 prints the environment for reproducibility)
 ├── figures/
@@ -131,6 +132,7 @@ of the predictions by raising the confidence threshold *improved* the public sco
 │   ├── fig_qualitative.png     # qualitative successes and the two failure modes
 │   ├── fig_distributions.png   # Dice / IoU distributions (rubric item)
 │   ├── fig_pipeline.pdf        # pipeline diagram, vector
+│   ├── fig_pipeline.png
 │   └── fig_qualitative.pdf     # qualitative figure, vector
 └── report/
     ├── report.md               # the 4-page write-up, Markdown
